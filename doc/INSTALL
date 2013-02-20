@@ -1,0 +1,49 @@
+retranse INSTALLATION
+
+1. Requirements
+================================================================================
+
+retranse currently compiles only on POSIX systems.
+It has been tested in a Ubuntu Linux 9.04.
+
+The programs needed to compile retranse are g++ compiler and make.
+The Perl Regular Expression Library `libpcre' and its C++ wrapper `libpcre++' 
+are also required. 
+
+In a debian distro the above can be installed by installing the packages
+with names: `g++', `make' and 'libpcre++-dev'. The package `libpcre++-dev'
+depends on `libpcre3-dev' and installs it automatically.
+
+To install these packages open a terminal and type:
+
+	sudo apt-get install g++ make libpcre++-dev
+
+Note that in different systems, the installation procedure and package names
+may vary.
+
+
+2. Installation
+================================================================================
+
+In a new directory, unzip or download the source code of retranse.
+While in the retranse source code directory type:
+
+	make
+
+and the retranse library and interpreter will be both compiled.
+After that, if you wish to install the retranse library into /usr/local type:
+
+	sudo make install
+
+and the retranse libraries and headers will be installed.
+
+
+3. Unstalling retranse
+================================================================================
+
+To remove retranse libraries from /usr/local go to the source code directory
+and type:
+
+	sudo make uninstall
+
+

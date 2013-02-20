@@ -1,0 +1,18 @@
+#!retranse -i
+#meta retranse-dialect A
+# **************************************************************************** #
+# * This is retranse sample #1                                                 *
+# * categorizer: finds the category of a word                                  *
+# *                                                                            *
+# * written by Kimon Kontosis                                                  *
+# **************************************************************************** #
+
+cat 	animal [L, NC]
+dog 	animal [L, NC]
+black 	color [L, NC]
+white 	color [L, NC]
+chair 	item [L, NC]
+table 	item [L, NC]
+
+.*	unknown
+

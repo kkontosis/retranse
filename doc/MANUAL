@@ -1,0 +1,964 @@
+retranse MANUAL
+
+1. About retranse
+================================================================================
+
+`retranse' is a regular expression based programming language.
+Written by Kimon Kontosis in year 2012 for his major paper in
+Department of Informatics and Telecommunications,
+National & Kapodistrian University of Athens.
+Copyright (C) 2012, Kimon Kontosis
+
+
+The retranse language relies on consecutive application of substitution rules.
+It is suitable for expandable and overridable configuration files.
+Also it is suitable for translating literal forms into other literal forms.
+It is parsed in an intermediate code and then it is interpreted.
+This package contains a parser able to run retranse programs and a C++ library.
+
+
+The retranse program is licensed under the GNU General Public License
+version 2.0 or later. See LICENSE
+
+libretranse is licensed under the GNU Lesser General Public License
+version 2.1 or later. See LICENSE.LESSER
+
+
+2. Installation
+================================================================================
+
+For INSTALLATION instructions, please refer to the file: INSTALL
+
+
+3. Command line manual
+================================================================================
+
+When running `retranse --help' from the command line, the following options
+are displayed:
+
+retranse version 1.0
+Copyright (c) 2012 Kimon Kontosis, licensed GPL v2.0 or above
+Usage: retranse switch [sourcefile] [inputfile | arg] [outputfile]
+
+-t                display compilation tree
+-i                run source file and evaluate standard input
+-f                run source file and evaluate file
+-p                run source file and evaluate command line input
+--help                display this help
+
+retranse compiles and runs a retranse program.
+Normally a retranse program is stored in a text file.
+The suggested file extension for retranse programs is `.ret'.
+There are four operation modes depending on how the input data is retrieved.
+The mode -t simply compiles the program but does not run it.
+The mode -i runs the program while reading the input data from the console.
+The mode -f runs the program using a file that contains the input data.
+The mode -p runs the program while giving a single line of data as an argument.
+
+
+3.1. Display compilation tree
+================================================================================
+
+The mode -t of retranse simply compiles the retranse program and displays
+the compilation tree if the compilation is successful.
+It is a way to check if a program can be compiled.
+The syntax of this mode is:
+
+        ./retranse -t
+
+to compile a program given from the standard input, or:
+
+        ./retranse -t <file>
+
+to compile a program given from a file named <file>.
+For example we test the compilation of the sample 'replace.ret':
+
+        $ ./retranse -t samples/replace.ret    
+        samples/replace.ret compiled.
+        r|
+          p|
+                f|main:(.*):
+                  l|00:
+                  b|
+                    s 0 1 1 0 2|00::0:
+                    t 0 0 0 2 1 2 0 3|(.*)e(.*):a:2:1:
+                    c 33 1 0 2 1 0 3 2|::00:0:
+                      b|
+                        j 0|
+                    s 114 1 1 0 2|1::0:
+          g|
+          m|retranse-dialect:A:
+
+
+3.2. Run source file and evaluate standard input
+================================================================================
+
+The mode -i of retranse runs a retranse program.
+The syntax of this mode is:
+
+        ./retranse -i <file>
+
+The file named <file> with the program is compiled and runs.
+The input data is given from the standard input.
+For example, we run the sample 'replace.ret':
+
+        $ ./retranse -i samples/replace.ret
+
+The program waits for input.
+If we type:
+        abc
+
+The program runs with input 'abc' and responds:
+        abc
+
+The program still waits for input until end of file is reached (Ctrl-D).
+If we continue and type:
+        efg
+the program responds:
+        afg
+
+The full run is:
+
+        $ ./retranse -i samples/replace.ret
+        abc
+        abc
+        efg
+        afg
+
+3.3. Run source file and evaluate file
+================================================================================
+
+The mode -f of retranse is the same as the mode -i differing only by the
+input data source. The input data in mode -f is given from a text file instead
+of the standard input.
+The syntax is:
+
+        ./retranse -f <file> <input-file>
+
+where <input-file> is a file that contains the input data.
+Each line is given as input to the retranse program contained in <file> in
+the same way as in mode -i.
+For example if data.txt contains the lines:
+
+        abc
+        efg
+
+Then this is an example run:
+
+        $ ./retranse -f samples/replace.ret data.txt
+        abc
+        afg
+
+
+3.4. Run source file and evaluate command line input
+================================================================================
+
+The mode -p of retranse is the same as -i and -f but runs with only a single
+line of input data. The program runs only once.
+The input data is given in the form of text as an argument in the command line.
+The syntax is:
+
+        ./retranse -p <file> <input-string>
+
+For example:
+
+        $ ./retranse -p samples/replace.ret efg
+        afg
+
+
+4. Debugging
+================================================================================
+
+When a retranse program contains errors, the retranse parser outputs those
+errors in the following format:
+
+        path/file:line: error: Error description.
+
+That way errors can be corrected and retranse can also be integrated with
+a generic programming text editor.
+
+For example let us see the following program, that has an error ('oops') in
+line 4:
+
+        file: samples/replace_bad.ret
+
+        ---------------------------------------------------------
+        #!retranse -i
+        #meta retranse-dialect A
+
+        (.*)e(.*)        $1a$2 oops
+
+        rerun
+        ---------------------------------------------------------
+
+When we try to compile the above file we get:
+
+        $ ./retranse -t samples/replace_bad.ret
+        samples/replace_bad.ret:4: error: Expected end of line.
+        compile failed!
+
+The error description depends on the actual command that contains the error.
+When a program is compiled, debugging can be done by giving input data
+and checking the results.
+
+
+5. The retranse programming language
+================================================================================
+
+A retranse program consists of the following things:
+        - Comments
+        - Metaprogramming directives
+        - Commands
+
+and empty lines.
+All retranse comments are lines that start with the '#' character. 
+For example the following line is treated like a comment:
+
+        # This is a comment
+
+The only exception to this rule are the metaprogramming directives which
+also start with the '#' character.
+The valid metaprogramming directives are the following:
+
+        #include
+        #meta
+
+The syntax of #include is:
+
+        #include <regex>
+
+where <regex> is a filename of a perl regular expression of filenames.
+All matched filenames are included in the program, like in C include.
+
+For example, the following directive will include all files in the directory
+'subdir' with the extension '.ret':
+
+        #include subdir/.*\.ret
+
+The #meta directive is followed by a key and a value which are
+instructions for the retranse parser.
+The only valid key for meta is 'retranse-dialect' and the only
+allowed value for it is currently 'A'.
+The directive:
+
+        #meta retranse-dialect A
+
+tells the retranse parser to explicitly parse retranse programs
+written in dialect 'A'. This allows retranse to maintain backward-compatibility
+in the case that the retranse language is changed in the future.
+In this case the retranse programs should not need to be upgraded if they
+use this directive.
+The only current dialect is 'A', however if the syntax of retranse
+changes in the future in a non-backward-compatible way, it will probably
+change name, possibly to dialect 'B', etc. However the retranse parser
+should still keep the previous code in case it needs to parse the dialect 'A'.
+
+The retranse commands consist of the following cases:
+
+        - function
+        - <expression>
+        - cond
+        - set
+        - global
+        - call
+        - reduce
+        - label
+        - jump
+        - rerun
+
+The 'function' and 'cond' and the <expression> commands may contain bodies.
+A body is an sequence of commands. It is contained within curly braces,
+in the form: command  { <body> }
+which may be separated in multiple lines.
+All other commands are sequential commands and are separated by a new line
+or by the separator ';'.
+
+5.1. Function
+================================================================================
+
+A retranse function is defined as follows:
+
+        function <name> ( <argument1>... ) { <body> }
+
+where
+        <name> is a valid function name, meaning an (alphanumeric) string
+                containing only letters, digits, or the _ character.
+
+and
+        <argument1>... is a white-space separated list of the argument patterns
+                where an argument pattern is a regular expression.
+
+Function definitions in retranse are only allowed within the main function
+which is essentially everywhere in the code of the retranse program
+except from within a function body.
+In other words, functions within functions are disallowed.
+
+Any retranse program is implicitly the body of a special function
+called `main'. The implicit definition of `main' is:
+
+        function main ( (.*) ) { <...> }
+
+where <...> is the the retranse program.
+
+
+5.1.1. Function arguments
+================================================================================
+
+Here is an example function that takes two arguments:
+
+        function add ( (.*) (.*) )
+        {
+                ...
+        }
+
+It is important that the argument patterns of a retranse function should in 
+most cases have variables.
+
+For example the pattern:
+
+        (.*)
+
+Has one variable. It matches everything and stores it into the variable.
+
+The pattern:
+
+        (.*)a(.*)
+
+Has two variables. It matches a string that has the letter 'a' somewhere 
+and it stores the left part in the first variable and the right part 
+in the second.
+
+When a function is called, a list of parameters is matched against
+the list of the function arguments.
+
+If a match occurs the function is called and the total matched variables
+of all the arguments are stored in the LOCAL retranse variables: 
+        $(a1) $(a2) ... etc. 
+
+in the right order but with no account to which parameter they refer to.
+The variables $(a1) ... are also referred to as the function input variables.
+
+The first function input variable $(a1) is also copied to the LOCAL retranse
+variable:
+        $0
+
+and to the LOCAL variable:
+        $00
+
+The variable $0 is the input variable and it is special because it always holds
+the current state. It is the one that holds the value which is tested in all
+the expression commands.
+
+The rest function input variables, $(a2) ..., if any, are also copied to 
+the GLOBAL retranse variables:
+        $1 $2 ... etc.
+
+accordingly. The latter variables are global, and so they are not safe to use
+after calling another function.
+
+If a match of the input arguments does not occur a function is not called
+and an error is thrown.
+
+5.1.2. Function overloading
+================================================================================
+
+Functions in retranse can be overloaded.
+A function definition can use a function name that has been redeclared once
+or many times.
+
+For example, the function `d_add' below is defined twice. 
+
+        function d_add ( 0 (.*) )    { ... }
+        function d_add ( (.*) (.*) ) { ... }
+
+In the case of overloading, when the function is called, the arguments
+are tested with ALL the overloaded definitions in the DEFINITION-ORDER.
+The first definition that matches is the one that is actually called and the
+rest are ignored.
+
+Overloaded functions may have different patterns but they should have
+the same number of arguments.
+
+The number addition sample is a good example of function overloading.
+
+A short notice is that in an object-oriented sense, the "overloaded" function 
+is placed before the "prototype" function, contrary to most languages.
+In reality however retranse function overloading is just testing against 
+a list of patterns until one is satisfied.
+
+5.1.3. Function return values
+================================================================================
+
+When a retranse function ends, the current value in $0 is returned in the 
+global variable:
+        $1
+
+A function may also return its value with the `reduce' command. The return 
+value is always placed in the variable $1.
+When the function returns multiple values, with the `reduce' command, they
+are placed in the global variables
+        $1 $2 ... etc.
+
+5.1.4. Function example
+================================================================================
+
+An example function is:
+
+        # join ( phrase separator )
+        #
+        # Joins two words given in the `phrase` with `separator` instead of space.
+        # Returns: the converted phrase
+
+        function join ( "(.*) (.*)" (.*) )
+        {
+                reduce to $(a1)$(a3)$(a2)
+        }
+
+This function has two arguments: "(.*) (.*)" and (.*).
+
+The first argument matches with a string containing two words, separated with
+a white-space. The second argument, which we call `separator`, matches with 
+anything. The function replaces the white-space between the two words
+with the given separator.
+
+For instance when calling the function as below:
+
+call x = join ( "this is" "-" )
+
+The following variables will be set:
+
+        $(a1) = "this"
+        $(a2) = "is"
+        $(a3) = "-"
+        $0    = "this"
+        $00   = "this"
+        $1    = "is"
+        $2    = "-"
+
+The one and only line of the function will return the string $(a1)$(a3)$(a2)
+and so the above call of the function will return:
+
+        "this-is"
+
+5.2. Variables in retranse
+================================================================================
+
+Variables in retranse are LOCAL and GLOBAL variables.
+Their difference is that LOCAL variables are pushed into a local stack for
+each function call and so their values do not change when calling another
+function.
+In a more abstract sense the local variables have a local scope in the
+function that they are declared.
+
+The variable declaration in retranse is done automatically.
+The `set' and the `call' commands automatically declare local variables,
+unless the `global` command is preceded with the same variable name.
+
+The `global' command is used once to declare a global variable. 
+Local and global variables should not have the same names.
+
+Variables can appear in any retranse string values in the following form:
+
+        $(<variable-name>)
+
+For example, the string:
+
+        $(a)
+
+stands for the value of the variable with name `a'.
+
+Especially the variables:
+
+        $(0) ... $(9)
+
+Can also be written in their shorthand form:
+
+        $1 ... $9
+
+Variable names in retranse may contain letters, numbers and/or 
+the _ character in any possible order and/or combination.
+
+Variables with special meaning in retranse are:
+
+Local variables:
+
+        $0                        The current input state
+        $(00)                        The saved-state at the beginning of the function
+        $(a1), $(a2), ...        The function argument variables
+
+Global variables:
+
+        $1, $2, ...                Used for the latest matched variables
+        $(c1), $(c2), ...        The matched variables of a cond expression
+
+
+5.3. String values in retranse
+================================================================================
+
+String values are the most basic element of retranse.
+This is because they are used both in values and in regular expressions.
+They do not require any special quotes and, generally, the end of a string
+is decided by either a white-space or tab, or by the end of the line.
+
+Concatenation in strings are done by simply placing two "values" next to
+each-other.
+
+There are several special characters in retranse strings making
+white-spaces in strings possible as well:
+
+        \<c>        for any character <c>, means the actual character <c>
+        \\        means \
+        \"        means "
+        \n        means new line
+        \t        means tab character
+        \s        means white-space
+        \e        means an empty string, nothing
+        $(<v>)        for any variable name <v>, means the value of the variable <v>
+        $<n>        for n = 0 ... 9, same as $(<n>)
+
+        "<string>" is the same as <string> but may also contain white spaces.
+
+
+5.4. Expression command
+================================================================================
+
+A retranse expression is defined as:
+
+        <regular-expression> <result-value> [<flags>...] [{ <body> }]
+
+The <flags> and <body> clauses are optional. 
+For the white space between clauses, the tab character may also be used.
+
+The left clause of the retranse expression is the regular expression.
+When the current value (variable $0) matches, it is replaced with the 
+right clause which is the string of the result value.
+
+Any variables matched in the regular expression are stored in the retranse
+variables: $1, $2, ...
+Therefore they can be used in the <result-value> string as $1, $2, ...
+The current state variable ($0) may be used as well, and it is also
+possible to use any other retranse variable.
+
+The minus character (-) when used as a <result-value> indicates that
+no changes occur. It is the same as using $0.
+To use an actual - character as a <result-value> it could be escaped,
+for example: "-" or \e-
+
+Flags, when they exist, are placed in braces ([ ]) in the following form:
+        [<flags>]
+
+and are comma-separated, for example:
+        [NC, B]
+
+Possible flags are:
+
+        [L]        Last statement, when matched the function immediately returns
+        [NC]        No case, ignores case when matching the pattern
+        [B]        Branch when matched. Followed by a body.
+
+When the [B] flag is used the command has a body. The body is executed only
+if the matching occurs. The syntax is:
+
+        <regular-expression> <result-value> [B] { <body> }
+
+Samples contain usefult examples of retranse expressions.
+A retranse expression that replaces the first occurence of the
+letter 'e' with the letter 'a' is:
+
+        (.*)e(.*)        $1a$2
+
+
+5.5. The command cond
+================================================================================
+
+The cond command describes a condition. 
+It is similar to an `if' statement in C.
+The syntax of the cond command is:
+
+        cond ( <logical-expression> ) { <body> }
+
+The body is executed if and only if the logical expression is satisfied.
+The forms of logical expressions in retranse are:
+
+        ( <logical-expression> )        means <logical-expression>
+        <expr> && <expr>                true if both expressions are true
+        <expr> || <expr>                true if any of the expressions is true
+        ! <expr>                        logical negative of <expr>
+        
+        <string> == <string>                true if strings are equal
+        <string> == <string> [<flags>]        same as above, with given flags
+        <string> != <string>                true if strings are different
+        <string> != <string> [<flags>]        same as above, with given flags
+        <string> ~ <reg-exp>                true if regular expression is matched
+                                        by the string, while
+                                        matched variables are stored in:
+                                        $(c1), $(c2), ...
+        <string> ~ <reg-exp> [<flags>]        same as above, with given flags.
+
+Possible <flags> are:
+        [NC]        No case, ignores case of strings.
+
+Many logical expressions can be combined with the use of parenthesis.
+However note that the white-space before and after opening and closing a
+parenthesis '(' and ')' is important. 
+
+The { <body> } part of a cond expression may consist of only one line.
+In this case, the brackets ({}) can be omitted.
+
+An example of cond is:
+
+        cond ( $2 != \e )
+                (.*)$2(.*) $1
+
+In the above example, the expression in the second line of code, splits
+the input in two parts using the variable $2 as the delimiter and gets the 
+left part. This happens only if the cond statement in the first line of code
+is true, which is if the variable $2 is not empty.
+
+Two small details should be noted in the above example. The first thing to 
+note is the fact that there is a variable in the regular expression. 
+This is legal, and the regular expression will be built at the moment of 
+the execution. The regular expression will contain the value of  the variable 
+at the moment of the execution. Second, the variable $2, which is used in 
+both the condition and the regular expression will be changed right after the
+expression runs, containing the right part of the split. Nevertheless it is 
+ok to use it in the regular expression, since the r.e. is generated before it
+is executed and thus it may contain a variable that will change during its 
+execution.
+
+
+5.6. The command set
+================================================================================
+
+The command set assigns a value to a variable.
+It also declares an undeclared variable as explained in the variables section.
+The syntax of set is:
+
+        set <variable-name> = <string-value>
+
+All the rules of retranse string values hold. The '$' is not used in set.
+
+The following example adds the character `s' at the end of the variable `name':
+
+        set name = $(name)s
+
+
+5.7. The command global
+================================================================================
+
+The command global has the same syntax as `set':
+
+        global <variable-name> = <string-value>
+
+However, once a variable is declared with the global command it has a global
+scope meaning that all functions that access a variable with that name, 
+refer to the same variable.
+
+Example:
+
+        global name = retranse
+
+
+5.8. The command call
+================================================================================
+
+The call command executes a function and stores the result to a variable.
+It also declares an undeclared variable as described the variables section.
+The syntax of call is:
+
+        call <variable-name> = <function-name> ( <argument-values>... )
+
+where <argument-values> is a white-space delimited list of the string values
+that are passed to the function.
+
+The function result is stored to $1, $2, ...
+The main result ($1) is copied to the specified variable.
+
+Several samples use the call command, e.g. the sample 'categories.ret'.
+
+An example is:
+
+        call x = add ( 1 $0 )
+
+This example will call the function 'add' giving '1' as the first argument
+and the value of the variable $0 as the second argument. All the rules of the
+retranse string values hold for the passed arguments.
+
+Note that the spaces before and after opening and closing the parenthesis are
+important.
+
+
+5.8.1. The command reduce call
+================================================================================
+
+The special form of call:
+
+        reduce call <function-name> ( <argument-values>... )
+
+Is a combination of the `call' command and the `reduce' command (see below).
+
+When using `reduce call' the given function is called and when finished
+the caller function exits returning the propagated return value(s) of 
+the callee.
+
+An example is:
+
+        reduce call add ( 1 $0 )
+
+The program will call 'add' with the given arguments and it will return the 
+'add' function's return value.
+
+
+5.9. The command reduce
+================================================================================
+
+The reduce command exits from the current function and returns a result.
+The syntax of reduce is:
+
+        reduce to <string-values>...
+
+where <string-values> is a white-space delimited list of the return values
+of the function. For example:
+
+        reduce to 1 2 3
+
+Most functions return a single argument, for example:
+
+        reduce to $0
+
+simply returns the current state.
+When a function reaches its end, the command "reduce to $0" is implicitly run
+always.
+
+All rules about string values in retranse hold for the string values of reduce. 
+
+The `reduce call' form is explained in the (above) call command section.
+
+
+5.10. The command label
+================================================================================
+
+The command label does not execute. It simply marks a specific line of code
+with a label, to be used with the `jump' command.
+
+The syntax of the label command is:
+
+        label <label-name>:
+
+Where <label-name> can be a string containing letters, numbers and or the
+character `_'.
+The scope of a label is local to a function.
+
+The command:
+
+        label 0: set 00 = $0
+
+Is always implied at the beginning of every retranse function.
+
+
+5.11. The command jump
+================================================================================
+
+The jump command moves the execution flow to a specific line of code.
+The line needs to have a label. 
+Also, the target line of code should be above the jump command.
+The syntax of jump is:
+
+        jump <label>
+
+For example:
+
+        jump 0
+
+
+5.12. The command rerun
+================================================================================
+
+The rerun command is usually placed at the end of a function.
+It tells the function to repeat itself until no more changes are made to the
+input.
+
+The syntax of the rerun command is
+
+        rerun
+
+The rerun command is usefull to make a retranse function or program more
+powerfull. In various cases concerning regular expressions steady state is 
+achieved when there are no possible match and no possible substitution.
+
+For example, in order to replace all the occurences of 'e' with 'a' we could
+run the following retranse expression as many times as possible:
+
+        (.*)e(.*)        $1a$2
+
+One way to achieve this, is with a function that is being `rerun' like this:
+
+        function replace_e ( (.*) )
+        {
+                (.*)e(.*)        $1a$2
+
+                rerun
+        }
+
+or by using rerun in the main function like in the 'replace' sample.
+
+The actual implementation of the rerun command is done in retranse.
+The rerun command is actually a shorthand for the command:
+
+        cond ( $0 != $(00) ) jump 0
+
+where the condition $0 != $(00) tests to see if the current state has
+been changed since the last run of the function.
+
+
+6. The samples
+================================================================================
+
+The directory samples/ of the retranse package contains a few sample programs
+written in retranse.
+For INFORMATION on the SAMPLES, please refer to the file: SAMPLES
+
+
+7. The retranse C++ library
+================================================================================
+
+The retranse package also contains a C++ library which is used to compile
+and run retranse programs.
+
+The retranse C++ library is `libretranse`.
+
+
+7.1. Building a program with libretranse
+================================================================================
+
+In order to use libretranse for a custom C++ program the library needs to be
+built first. This can be done by following the INSTALLATION instructions.
+
+For the include and library files, the directory of retranse needs to be
+included by the compiler.
+
+The source program also needs to include the retranse header file:
+
+        #include "retranse.hpp"
+        
+The library `libretranse` also needs to be statically linked with the 
+binary file. In addition, the libraries for Perl regular expressions 
+`libpcre++` and `libpcre` also need to be linked.
+
+An example compilation with g++ is the following:
+
+        g++ file.cpp -I ../retranse -L ../retranse -lretranse -lpcre++ -lpcre
+
+Note that for static linkage, instead of `-lretranse` the g++ should be given
+the static library file using `-l:libretranse.a`.
+
+
+7.2. Using libretranse
+================================================================================
+
+The following sample C++ program compiles and runs the sample retranse program 
+`replace.ret` then runs it with the input "Hello, World!" and finally outputs 
+the result.
+
+        #include <iostream>
+        #include <fstream>
+        #include "retranse.hpp"
+        
+        int main()
+        {
+                std::ifstream f("samples/replace.ret");
+                if(!f.good()) {
+                        std::cerr << "cannot open file!" << std::endl;
+                        return 0;
+                }
+                retranse::node* n;
+                n = retranse::compile(f, "replace.ret", std::cerr);
+                if(!n) { 
+                        std::cerr << "compile failed!" << std::endl;
+                        return 0;
+                }
+                std::string out = retranse::run(n, "Hello, world!");
+                std::cout << out << std::endl;
+                return 0;
+        }
+        
+This program opens an input stream and then compiles the code read from
+that stream using `retranse::compile`. 
+The type `retranse::node*` is used to hold a compiled retranse node tree.
+This tree is a custom binary form of the same code that can be interpreted
+using `retranse::run`, which gives the input and returns the output.
+
+
+7.3. retranse API reference
+================================================================================
+
+The following function calls and types belong to namespace `retranse'
+and are hereby being documented:
+
+
+7.3.1. Types
+================================================================================
+
+        //! A struct that holds the compiled retranse node trees, which are
+        //! the binary form of a retranse programs and can be interpreted.
+        struct node;
+        
+        //! Exception used for retranse runtime errors
+        struct rtex;
+        
+        //! Variable space. Map that holds: map["varname"] = "value"
+        //! All the global retranse variables are stored in such a type.
+        typedef std::map<std::string, std::string> var_t;
+                
+                
+7.3.2. Compiling
+================================================================================
+        
+        //! Compile a program from an input stream, 0 on error. 
+        //! The `shown_filename' is displayed as the file name on errors.
+        //! Errors are written to the output stream `err'.
+        //! The user should manually delete the returned node when done.
+        node* compile(std::istream& ii, std::string shown_filename, 
+                std::ostream& err);
+
+        //! Compile a program from a filename. Set quiet to not show errors.
+        inline node* compile(std::string f, bool quiet = false);
+
+        //! Compile a program from a string using the program name 'n'
+        //! The program name is displayed as the file name on errors.
+        inline node* compile(std::string prg, std::string n, 
+                bool quiet = false);
+
+                
+7.3.3. Displaying information
+================================================================================
+
+        //! Show the compilation tree of n to std::cout
+        //! The parameter d is used for indentation. 
+        //! It should normally be zero.
+        void recshow(node* n, int d);
+
+        
+7.3.4. Running retranse programs
+================================================================================
+        
+        //! Run program n function f with arguments 'ar' and variable space 'v'
+        std::string run(node* n, std::string f, std::vector<std::string> ar, 
+                var_t& v);
+
+        //! Run program n function f with single argument ar 
+        //! and variable space 'v' 
+        std::string run(node* n, std::string f, std::string ar, var_t& v);
+        
+        //! Run program n function f with arguments 'ar' 
+        std::string run(node* n, std::string f, std::vector<std::string> ar);
+        
+        //! Run program n function f with single argument ar
+        std::string run(node* n, std::string f, std::string ar);
+        
+        //! Run program n main with argument 's' and variable space 'v'
+        std::string run(node* n, std::string s, var_t& v);
+        
+        //! Run program n main with single argument ar
+        std::string run(node* n, std::string s);
+

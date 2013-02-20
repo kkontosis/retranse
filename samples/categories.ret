@@ -1,0 +1,35 @@
+#!retranse -i
+#meta retranse-dialect A
+# **************************************************************************** #
+# * This is retranse sample #3                                                 *
+# * multiple categorizer: finds the category of each word of a sentence        *
+# *                                                                            *
+# * written by Kimon Kontosis                                                  *
+# **************************************************************************** #
+
+
+function category ( (.*) )
+{
+	cat 	animal [L, NC]
+	dog 	animal [L, NC]
+	black 	color [L, NC]
+	white 	color [L, NC]
+	chair 	item [L, NC]
+	table 	item [L, NC]
+	.*	unknown
+}
+
+function categories ( "([^\s]+)[\s]+([^\s].*)" )
+{
+	call x = category ( $0 )
+	call y = categories ( $(a2) )
+	reduce to "$(x) $(y)"
+}
+
+function categories ( (.*) )
+{
+	reduce call category ( $0 )
+}
+
+reduce call categories ( $0 )
+

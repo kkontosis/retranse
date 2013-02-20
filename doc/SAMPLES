@@ -1,0 +1,201 @@
+retranse SAMPLES
+
+1. The samples
+================================================================================
+
+The directory samples/ of the retranse package contains a few sample programs
+written in retranse.
+
+In order to test retranse, the samples can be run. They can also be a source
+of information for the language.
+
+Here is a list of the samples containing various input and outputs of tests.
+The source code of the samples including the comments should be observed
+along with this guide.
+
+1.1. Word categorizer
+================================================================================
+
+The sample #1 is `samples/categorizer.ret`.
+This sample finds the category of an input word, from a known list of words.
+It is a simple demonstration of translation rules using retranse expressions.
+
+Suppose we have built retranse and we want to run the sample `categorizer`
+with the input string "cat". From the directory of the retranse binary
+we may type:
+
+        $ ./retranse -p samples/category.ret "cat"
+        animal
+
+The sample program gives the output "animal" for the input "cat".
+Here is a list of input -> output pairs for this sample:
+
+        Input                           Output
+        --------------------------------------------------------------------
+        cat                             animal
+        house                           unknown
+        DOG                             animal
+        black                           color
+        Chair                           item
+        CHaIr                           item
+
+
+1.2. Substitution of a letter
+================================================================================
+
+The sample #2 is `samples/replace.ret`.
+This sample replaces the letter `e' with the letter `a' in a word or phrase.
+It is a demonstration of pattern matching, variables and the rerun command.
+
+Here is a list of input -> output pairs for this sample:
+
+        Input                           Output
+        --------------------------------------------------------------------
+        e                               a
+        eee                             aaa
+        xyz                             xyz
+        This is a simple phrase         This is a simpla phrasa
+
+
+1.3. Multiple word categorizer
+================================================================================
+
+The sample #3 is `samples/categories.ret`
+This sample finds the category of each word of a given sentence.
+It is a demonstration of functions and function overloading.
+
+Here is a list of input -> output pairs for this sample:
+
+        Input                           Output
+        --------------------------------------------------------------------
+        cat                             animal
+        cat white                       animal color
+        table cat black                 item animal color
+        dog cat HOUSE CHAIR             animal animal unknown item
+
+
+1.4. Addition calculator
+================================================================================
+
+The sample #4 is `samples/addition.ret`
+This sample is a calculator that adds to arbitrarily long numbers.
+It demonstrates more advanced use of functions and the use of the cond command.
+
+Here is a list of input -> output pairs for this sample:
+					
+        Input                           Output
+        --------------------------------------------------------------------
+        1+2                             3
+        1+242                           243
+        1100+242                        1342
+        999+1                           1000
+
+        
+1.5. English to Greek translator
+================================================================================
+
+The sample #5 is `samples/english2greek.ret`
+This sample translates simple phases from English to Greek.
+It demonstrates some of the expressiveness of the retranse language.
+
+The sample output is in UTF-8 so a UTF-8 terminal is required.
+
+Here is a list of input -> output pairs for this sample:
+
+        Input -> 
+        Output
+        --------------------------------------------------------------------
+        
+        cat ->
+        γάτα
+        
+        dog ->
+        σκύλος
+        
+        tiger ->
+        tiger
+        
+        the cat ->
+        η γάτα
+        
+        the dog ->
+        ο σκύλος
+        
+        the black dog ->
+        ο μαύρος σκύλος
+
+        I am a black cat ->
+        εγώ είμαι μία μαύρη γάτα
+        
+        I run ->
+        εγώ τρέχω
+        
+        this is a black cat ->
+        αυτή είναι μία μαύρη γάτα
+        
+        the dog runs ->
+        ο σκύλος τρέχει
+        
+        this is a black dog and this is a black cat ->
+        αυτός είναι ένας μαύρος σκύλος και αυτή είναι μία μαύρη γάτα
+        
+        this black cat eats this brown dog ->
+        αυτή η μαύρη γάτα τρώει αυτό τον καφέ σκύλο
+        
+        this black cat is lazy ->
+        αυτή η μαύρη γάτα είναι τεμπέλα
+        
+        the dog barks at the moon ->
+        ο σκύλος γαυγίζει στο φεγγάρι
+        
+        the dog runs towards the cat beneath the lazy brown moon ->
+        ο σκύλος τρέχει προς τη γάτα κάτω από το τεμπέλικο καφέ φεγγάρι
+        
+        the quick brown fox jumps over the lazy dog ->
+        η γρήγορη καφέ αλεπού πηδάει επάνω από τον τεμπέλη σκύλο
+        
+
+Some explanations are given for the code of this sample.
+The main rules of the translation are in the function `translate'.
+As it can be observed, only limited and simple forms of phrases can be 
+translated. Tenses, plural and adverbs are also omitted.
+
+The dictionary which is mainly in the function `words' creates markings of the
+translated words, such as:
+
+        [m]        male gender
+        [f]        female gender
+        [o]        object gender
+        [u]        undetermined gender
+
+For example:
+
+        cat                     γάτα[f] 
+
+The retranse rules of the function `translate' apply markings to the relevant
+input words using the curly brackets, e.g.
+
+        {m}        male gender
+        {f}        female gender
+        {o}        object
+        
+Therefore, adjectives may have a different translation depending on the gender:
+
+        black{m}                μαύρος[m]
+        black{f}                μαύρη[f]
+        black{o}                μαύρο[o]
+        
+Also, when a word becomes an object of a verb it might need to change form.
+In this example the male form of the word needs to be changed when the object
+mark `{o}' is applied:
+
+        μαύρος{o}               μαύρο[o]
+
+Finally, besides the genders there are a few more types of markings, 
+like the following:
+        
+        bark                    γαυγίζω[verb]
+
+Note that the translator sample does not follow any actual language translation
+theory and it is probably impossible to extend to a real language translation
+application.

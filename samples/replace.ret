@@ -1,0 +1,15 @@
+#!retranse -i
+#meta retranse-dialect A
+# **************************************************************************** #
+# * This is retranse sample #2                                                 *
+# * replace: replaces the letter "e" with letter "a" in a word                 *
+# *                                                                            *
+# * written by Kimon Kontosis                                                  *
+# **************************************************************************** #
+
+
+(.*)e(.*)	$1a$2
+
+rerun
+
+
