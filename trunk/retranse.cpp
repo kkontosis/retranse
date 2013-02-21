@@ -1,5 +1,5 @@
 /*  retranse, a regular expression based programming language interpreter 
- *  Copyright (C) 2012, Kimon Kontosis
+ *  Copyright (C) 2013, Kimon Kontosis
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published
@@ -30,7 +30,7 @@
 int help()
 {
 	std::cout << "retranse version 1.0\n";
-	std::cout << "Copyright (c) 2012 Kimon Kontosis, licensed GPL v2.0 or above\n";
+	std::cout << "Copyright (c) 2013 Kimon Kontosis, licensed GPL v2.0 or above\n";
 	std::cout << "Usage: retranse switch [sourcefile] [inputfile | arg] [outputfile]\n";
  	std::cout << "\n";
 	std::cout << "-t		display compilation tree\n";

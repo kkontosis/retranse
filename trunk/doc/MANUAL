@@ -4,10 +4,10 @@ retranse MANUAL
 ================================================================================
 
 `retranse' is a regular expression based programming language.
-Written by Kimon Kontosis in year 2012 for his major paper in
+Written by Kimon Kontosis in year 2013 for his major paper in
 Department of Informatics and Telecommunications,
 National & Kapodistrian University of Athens.
-Copyright (C) 2012, Kimon Kontosis
+Copyright (C) 2013, Kimon Kontosis
 
 
 The retranse language relies on consecutive application of substitution rules.
@@ -37,7 +37,7 @@ When running `retranse --help' from the command line, the following options
 are displayed:
 
 retranse version 1.0
-Copyright (c) 2012 Kimon Kontosis, licensed GPL v2.0 or above
+Copyright (c) 2013 Kimon Kontosis, licensed GPL v2.0 or above
 Usage: retranse switch [sourcefile] [inputfile | arg] [outputfile]
 
 -t                display compilation tree
