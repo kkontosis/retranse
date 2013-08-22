@@ -247,6 +247,9 @@ std::vector<int> unesc_string(std::string& s)
 			s.erase(i,1);
 			if(s[i]=='e') { mr[i]=0; s.erase(i,1); i--; }
 			else if(s[i]=='s') s[i]=' ';
+			else if(s[i]=='n') s[i]='\n';
+			else if(s[i]=='r') s[i]='\r';
+			else if(s[i]=='t') s[i]='\t';
 		}
 	return mr;
 }
