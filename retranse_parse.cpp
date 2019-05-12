@@ -1,4 +1,4 @@
-/*  libretranse, a regular expression based programming language library 
+/*  libretranse, a regular expression based programming language library
  *  Copyright (C) 2013, Kimon Kontosis
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -12,7 +12,7 @@
  *  GNU General Public License for more details.
  *
  *  You should have received a copy of the GNU Lesser General Public License
- *  version 2.1 along with this program (see LICENSE.LESSER); if not, see 
+ *  version 2.1 along with this program (see LICENSE.LESSER); if not, see
  *  <http://www.gnu.org/licenses/>.
  *
 */
@@ -29,7 +29,12 @@
 #include "dirlist.hpp"
 #include <pcre++.h> // for include
 
-#define L std::cout << 
+// remove macro if defined
+#ifdef assert
+#undef assert
+#endif
+
+#define L std::cout <<
 static const unsigned char BOM[] = { 0xEF,0xBB,0xBF };
 
 namespace retranse {
@@ -55,7 +60,7 @@ struct noder {
 	node* n;
 	std::string file;
 	int line;
-	noder(node* n, std::string file, int line) 
+	noder(node* n, std::string file, int line)
 		: n(n), file(file), line(line) {}
 	noder(const noder& o)
 		: n(o.n), file(o.file), line(o.line) { }
@@ -63,7 +68,7 @@ struct noder {
 		: n(n), file(o.file), line(o.line) { }
 };
 
-// holds lines of code given from parser. 
+// holds lines of code given from parser.
 struct noderholder {
 	std::vector<noder*> ls;
 	node* root;
@@ -75,14 +80,14 @@ struct noderholder {
 	std::istringstream* isp;
 	std::string empt;
 	int current;
-	noderholder(std::string s, noderholder& h) : err(h.err), 
+	noderholder(std::string s, noderholder& h) : err(h.err),
 		ls(1, new noder(new node(s), "",0)), current(0), root(h.root), cur_f(h.cur_f),
 			isp(new std::istringstream(s)) {}
 	noderholder(std::ostream& err) : err(err), current(-1) { root=NULL;isp=NULL; }
-	~noderholder() { for(int i=0;i<ls.size();i++) 
-		{ // TODO: re-enable and fix: if(isp) delete isp; 
+	~noderholder() { for(int i=0;i<ls.size();i++)
+		{ // TODO: re-enable and fix: if(isp) delete isp;
 		if(ls[i]->n) delete ls[i]->n; delete ls[i]; } } // delete isp crashes
-	noderholder& operator<<(const noder& n) { 
+	noderholder& operator<<(const noder& n) {
 		ls.push_back(new noder(n, NULL)); current++; return *this; }
 	void operator&&(const std::string& s) { ls[ls.size()-1]->n = new node(s); }
 	template<class T>
@@ -92,7 +97,7 @@ struct noderholder {
 	void rewind() { current = 0; isp = new std::istringstream(str()); }
 	bool eof() { return check_eof(*isp) && current+1 >= ls.size(); }
 	std::istream& iss() { return *isp; }
-	bool advance() { if(current >= ls.size()-1) return false; if(isp) delete isp; 
+	bool advance() { if(current >= ls.size()-1) return false; if(isp) delete isp;
 		current++; isp = new std::istringstream(str()); return true; }
 };
 
@@ -101,7 +106,7 @@ template<class T>
 std::ostream& noderholder::operator<<(const T& x)
 {
 	err << ls.size() << std::endl;
-	return err << ls[current]->file << ":" << ls[current]->line << ": " << x; 
+	return err << ls[current]->file << ":" << ls[current]->line << ": " << x;
 }
 
 // section 1 : plain string manip.
@@ -120,7 +125,7 @@ int whitespace(std::istream& ii)
 }
 
 // true if string 'str' is waiting to be read from istream 'ii'.
-bool check_str(std::istream& ii, std::string s, bool whspace = false, 
+bool check_str(std::istream& ii, std::string s, bool whspace = false,
 	const char* wh = whitespace_chars)
 {
 	int i;
@@ -141,7 +146,7 @@ bool check_str(std::istream& ii, std::string s, bool whspace = false,
 bool check_rd_str(std::istream& ii, std::string s, bool whspace = false,
 	const char* wh = whitespace_chars)
 {
-	if(check_str(ii, s, whspace, wh)) { 
+	if(check_str(ii, s, whspace, wh)) {
 		for(int i=0; i<s.size(); i++) ii.get();
 		return true;
 	}
@@ -150,7 +155,7 @@ bool check_rd_str(std::istream& ii, std::string s, bool whspace = false,
 
 // return true if end of line is reached, when reading preparsed string streams
 bool eolchar(std::istream& ii)
-{		
+{
 	return (check_eof(ii) || check_str(ii, ";") || check_str(ii, "}"));
 }
 
@@ -201,7 +206,7 @@ std::string scan_id_string(std::istream& ii, const char* additional_terminators 
 // read a string without whitespaces but allow escaped whitespaces.
 // should also satisfy unescaped parentheses if track_par is true.
 // counts and returns # of opened or closed parentheses if par_map is not null.
-std::string scan_string(std::istream& ii, int track_par = false, 
+std::string scan_string(std::istream& ii, int track_par = false,
 	std::map<int, int>* par_map = NULL, bool test_par = false)
 {
 	const char* openpar = "([\"";
@@ -218,7 +223,7 @@ std::string scan_string(std::istream& ii, int track_par = false,
 		}
 		else if(track_par || par_map || test_par) {
 			if((cp=strchr(closepar, c)) && (c!='\"' || open[c])) {
-				if(--open[*(cp-closepar+openpar)] < 0 
+				if(--open[*(cp-closepar+openpar)] < 0
 				&& track_par) {
 					++open[*(cp-closepar+openpar)];
 					ii.unget();
@@ -255,7 +260,7 @@ std::vector<int> unesc_string(std::string& s)
 }
 
 // remove all $i and $(name) occurences from s and return list of reverse position and variable name.
-std::vector<std::pair<int, std::string> > find_replacements(std::string& s, 
+std::vector<std::pair<int, std::string> > find_replacements(std::string& s,
 	std::vector<int>* escaped_map = NULL)
 {
 	int cp=0, d=0;
@@ -356,9 +361,9 @@ node* parse_function(noderholder& h, int c_flag = 'f')
 			}
 		}
 
-		// code for call and store / return 
+		// code for call and store / return
 		std::ostringstream rcmd;
-		if(c_flag == 'r') 
+		if(c_flag == 'r')
 			rcmd << "cond ( \\e == \\e ) { reduce return }";
 		else
 			rcmd << "cond ( \\e == \\e ) { set "<<cx << " = $1 }";
@@ -389,7 +394,7 @@ node* parse_cond(noderholder& h)
 	assert(h.iss(), "cond", h);
 	whitespace(h.iss());
 	assert(h.iss(), "(", h);
-	
+
 	std::vector<int> user_stack;
 	std::vector<int> op_stack;
 	std::vector<std::string> cmd_stack;
@@ -405,7 +410,7 @@ node* parse_cond(noderholder& h)
 			for(;ops[d];ops[d]--) {
 				// one or two operands and one operator.
 				n->code.push_back(*op_stack.rbegin());
-				op_stack.pop_back(); 
+				op_stack.pop_back();
 				for(;opc>0;opc--) {
 					n->str.push_back(*cmd_stack.rbegin());
 					cmd_stack.pop_back();
@@ -422,19 +427,19 @@ node* parse_cond(noderholder& h)
 			opi[d]++;
 			if(d<0) { h.iss().unget(); break; } else continue;
 		}
-		
+
 		std::string wh_s = std::string(whitespace_chars) + "()";
 		const char* wh = wh_s.c_str();
 
 		// unary subexpression (flag 256) operator ! (may not require parenthesis)
 		if(opc==0 && opi[d] == 0 && check_str(h.iss(), "!", true, wh))
 				{ ops[d]++; op_stack.push_back(h.iss().get()|256); continue; }
-		
+
 		// binary operator ~ == != and || &&
 		if((opc==1 && opi[d] == 0 && (
 			check_str(h.iss(), "~", true) ||
 			check_str(h.iss(), "==", true) ||
-			check_str(h.iss(), "!=", true) 
+			check_str(h.iss(), "!=", true)
 		   	)) || (opc==0 && opi[d] == 1 && (
 			check_str(h.iss(), "||", true) ||
 			check_str(h.iss(), "&&", true))))
@@ -551,7 +556,7 @@ node* parse_set(noderholder& h, int g_flag = 0, int r_flag = 0)
 
 	int rc = 1;
 	size_t s0 = n->str.size();
-	if(g_flag == 'g' && !check_str(h.iss(), "=")) 
+	if(g_flag == 'g' && !check_str(h.iss(), "="))
 		n->str.push_back(std::string("$("+(*n->str.rbegin())+")"));
 	else {
 		if(g_flag != 'r') assert(h.iss(), "=", h);
@@ -577,7 +582,7 @@ node* parse_set(noderholder& h, int g_flag = 0, int r_flag = 0)
 			n->str.push_back(rpl[j].second);
 		}
 	}
-	return n;	
+	return n;
 }
 
 node* parse_error(noderholder& h)
@@ -587,7 +592,7 @@ node* parse_error(noderholder& h)
 	n->code.push_back('e');
 	assert(h.iss(), "error", h);
 	whitespace(h.iss());
-	
+
 	n->str.push_back(scan_string(h.iss(), false, NULL, true));
 	std::vector<int> mri = unesc_string((n->str[0]));
 	vector<pair<int, string> > rpl=find_replacements((n->str[0]), &mri);
@@ -597,7 +602,7 @@ node* parse_error(noderholder& h)
 		n->code.push_back(n->str.size()); // variable name index in strs
 		n->str.push_back(rpl[j].second);
 	}
-	return n;	
+	return n;
 }
 
 node* parse_jump(noderholder& h)
@@ -666,7 +671,7 @@ node* parse_rex(noderholder& h)
 	}
 
 	// stage three: sub-program if any
-	if(bflag) 
+	if(bflag)
 	{
 		if(!parse_open_brace(h)) {
 			h << "error: Expected statement body" << std::endl;
@@ -701,8 +706,8 @@ node* parse_cmd(noderholder& h)
 		return parse_error(h);
 	if(check_str(h.iss(), "global", true))
 		return parse_set(h, 'g');
-	if(check_str(h.iss(), "call", true)) 
-		return parse_function(h, 'x'); 
+	if(check_str(h.iss(), "call", true))
+		return parse_function(h, 'x');
 	if(check_rd_str(h.iss(), "reduce", true)) {
 		whitespace(h.iss());
 		if(check_str(h.iss(), "return"))
@@ -711,12 +716,12 @@ node* parse_cmd(noderholder& h)
 			return parse_set(h, 'r');
 		else if(check_str(h.iss(), "call"))
 			return parse_function(h, 'r');
-		else { 
+		else {
 			h << "error: Reduce expects \"to\" or \"call\" " << std::endl;
 			throw(1);
 		}
 	}
-	if(check_rd_str(h.iss(), "jump", true)) 
+	if(check_rd_str(h.iss(), "jump", true))
 		return parse_jump(h);
 	if(check_rd_str(h.iss(), "rerun", true)) {
 		whitespace(h.iss());
@@ -765,20 +770,20 @@ node* parse_body(noderholder& h, int m_flag)
 			throw(1);
 		}
 
-		if(m_flag == '1') return n; // one-liner without braces		
+		if(m_flag == '1') return n; // one-liner without braces
 
 		if(h.eof() || check_str(h.iss(), "}"))
 			break;
 
-		if(check_rd_str(h.iss(), ";")) whitespace(h.iss()); 
+		if(check_rd_str(h.iss(), ";")) whitespace(h.iss());
 			//continue;
 
 		if(check_eof(h.iss()) && !h.advance())
 			break;
 
-	} 
+	}
 
-	if(m_flag == 'm' || m_flag == '1') unexpect(h.iss(), "}", h); 
+	if(m_flag == 'm' || m_flag == '1') unexpect(h.iss(), "}", h);
 	else assert(h.iss(), "}", h);
 	if(m_flag == 'm' || m_flag == 'f') {
 		noderholder nrh("reduce to $0", h);
@@ -793,7 +798,7 @@ node* parse_program(noderholder& h)
 	node* root = new node;
 	h.root = root;
 	root->code.push_back('r'); // root
-	root->flow.push_back(new node); 
+	root->flow.push_back(new node);
 	root->flow.push_back(new node);
 
 	root->flow[1] = new node; // glob
@@ -871,9 +876,9 @@ void preprocess(std::istream& ii, noderholder& nrdh, noder nrd)
 				}
 				std::vector<std::string> dl = dirlist(p);
 				if(p.size()) p += "/";
-				for(size_t i = 0; i < dl.size(); i++) 
+				for(size_t i = 0; i < dl.size(); i++)
 					if(pcrepp::Pcre(std::string("^")+rx+std::string("$"))
-					.search(dl[i])) 
+					.search(dl[i]))
 				{
 					string fn = p + dl[i];
 					ifstream ifs(fn.c_str(), ifstream::in);
@@ -911,7 +916,7 @@ void preprocess(std::istream& ii, noderholder& nrdh, noder nrd)
 			whitespace(iss);
 			ts = scan_string(iss);
 		} // check if last '\' right before eol is escaped or not
-		if(s.size() && s[s.size()-1]=='\\' && 
+		if(s.size() && s[s.size()-1]=='\\' &&
 			(!ts.size() || ts[ts.size()-1]!='\\'))
 		// line that continues on the next line
 		{

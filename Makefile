@@ -19,10 +19,10 @@ libretranse.a: retranse_run.o retranse_parse.o
 	ar r libretranse.a retranse_run.o retranse_parse.o
 
 libretranse.so: retranse_run.o retranse_parse.o
-	$(CXX) $(CFLAGS) -shared -o libretranse.so retranse_run.o retranse_parse.o
+	$(CXX) $(CFLAGS) -shared -o libretranse.so retranse_run.o retranse_parse.o -lpcre++ -lpcre
 
 retranse: retranse.o libretranse.a
-	$(CXX) $(FLAGS) -L. -o retranse retranse.o -l:libretranse.a -lpcre++ -lpcre
+	$(CXX) $(FLAGS) -L. -o retranse retranse.o -lretranse -lpcre++ -lpcre
 
 
 .PHONY: clean
