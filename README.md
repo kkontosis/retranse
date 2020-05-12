@@ -1,6 +1,6 @@
-##Example:
+## Example
 
-`addition.ret`:
+addition.ret:
 ```
 #!retranse -i
 #meta retranse-dialect A
@@ -47,6 +47,10 @@ function add ( (.*)(.) (.*)(.) )
 (.*)\+(.*) - [B] { reduce call add ( $1 $2 ) }
 ```
 
+## Run
+
+```
 $ ./retranse -i addition.ret
         100 21
         121
+```
