@@ -11,7 +11,7 @@ This package contains a parser able to run retranse programs and a C++ library.
 
 ## Example
 
-A program that adds two arbitrarily long numbers
+A program that adds two arbitrarily long numbers.
 
 addition.ret:
 ```
@@ -64,8 +64,10 @@ function add ( (.*)(.) (.*)(.) )
 
 ```
 $ ./retranse -i addition.ret
-        100 21
-        121
+100 21
+121
+^D
+$
 ```
 
 ## Documentation
