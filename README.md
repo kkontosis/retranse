@@ -1,6 +1,6 @@
 # About
 
-retranse is a regular expression based programming language.
+'retranse' is a regular expression based programming language.
 
 The retranse language relies on consecutive application of substitution rules.
 It is suitable for expandable and overridable configuration files.
