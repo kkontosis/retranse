@@ -11,6 +11,8 @@ This package contains a parser able to run retranse programs and a C++ library.
 
 ## Example
 
+A program that adds two arbitrarily long numbers
+
 addition.ret:
 ```
 #!retranse -i
