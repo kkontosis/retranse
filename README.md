@@ -1,6 +1,15 @@
+# About
+
+The retranse language relies on consecutive application of substitution rules.
+It is suitable for expandable and overridable configuration files.
+Also it is suitable for translating literal forms into other literal forms.
+It is parsed in an intermediate code and then it is interpreted.
+This package contains a parser able to run retranse programs and a C++ library.
+
+
 ## Example
 
-addition.ret:
+`addition.ret`:
 ```
 #!retranse -i
 #meta retranse-dialect A
