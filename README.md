@@ -1,5 +1,7 @@
 # About
 
+retranse is a regular expression based programming language.
+
 The retranse language relies on consecutive application of substitution rules.
 It is suitable for expandable and overridable configuration files.
 Also it is suitable for translating literal forms into other literal forms.
@@ -62,4 +64,33 @@ function add ( (.*)(.) (.*)(.) )
 $ ./retranse -i addition.ret
         100 21
         121
+```
+
+## Documentation
+
+```
+`retranse' is a regular expression based programming language.
+Written by Kimon Kontosis in year 2013 for his major paper in
+Department of Informatics and Telecommunications,
+National & Kapodistrian University of Athens.
+Copyright (C) 2013, Kimon Kontosis
+
+
+The retranse language relies on consecutive application of substitution rules.
+It is suitable for expandable and overridable configuration files.
+Also it is suitable for translating literal forms into other literal forms.
+It is parsed in an intermediate code and then it is interpreted.
+This package contains a parser able to run retranse programs and a C++ library.
+
+
+The retranse program is licensed under the GNU General Public License
+version 2.0 or later. See LICENSE
+
+libretranse is licensed under the GNU Lesser General Public License
+version 2.1 or later. See LICENSE.LESSER
+
+
+For retranse documentation see doc/MANUAL
+
+For quick INSTALLATION instructions see doc/INSTALL
 ```
