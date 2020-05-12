@@ -11,7 +11,7 @@ This package contains a parser able to run retranse programs and a C++ library.
 
 ## Example
 
-`addition.ret`:
+addition.ret:
 ```
 #!retranse -i
 #meta retranse-dialect A
