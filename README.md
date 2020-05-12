@@ -6,7 +6,7 @@ The retranse language relies on consecutive application of substitution rules.
 It is suitable for expandable and overridable configuration files.
 Also it is suitable for translating literal forms into other literal forms.
 
-It is parsed an an intermediate code and then it is interpreted.
+Its source code is parsed as an intermediate code and then it is interpreted.
 
 This package contains a parser able to run retranse programs and a C++ library.
 
